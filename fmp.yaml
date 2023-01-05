@@ -1,0 +1,11 @@
+org_name: XTC
+module_name: LuaEnv
+generate:
+  active: true
+  database_driver: none
+  debug: false
+  unity_solution: true
+publish:
+  active: true
+  environment: product
+  repository: grpcs://api.xtech.cloud:29000

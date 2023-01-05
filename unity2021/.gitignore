@@ -1,0 +1,19 @@
+
+/_dist_/
+/_build_/
+/LuaEnv/Assets/TextMesh Pro/
+/LuaEnv/Assets/TextMesh Pro.meta
+/LuaEnv/Assets/Plugins/
+/LuaEnv/Assets/Plugins.meta
+/LuaEnv/Assets/3rd/
+/LuaEnv/Assets/3rd.meta
+/LuaEnv/Library/
+/LuaEnv/obj/
+/LuaEnv/Logs/
+/LuaEnv/Temp/
+/LuaEnv/UserSettings/
+/LuaEnv/*.sln
+/LuaEnv/*.csproj
+/LuaEnv/.vsconfig
+/LuaEnv/.vs/
+/.UNITY_HOME.env

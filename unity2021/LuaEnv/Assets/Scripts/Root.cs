@@ -1,5 +1,6 @@
 
 using UnityEngine;
+using XTC.FMP.LIB.MVCS;
 
 /// <summary>
 /// 根程序类
@@ -9,9 +10,12 @@ using UnityEngine;
 /// </remarks>
 public class Root : RootBase
 {
+    public Font mainFont;
+
     private void Awake()
     {
         doAwake();
+        settings_["font.main"] = Any.FromObject(mainFont);
     }
 
     private void Start()

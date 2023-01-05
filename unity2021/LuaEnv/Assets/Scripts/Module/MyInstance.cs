@@ -11,7 +11,7 @@ using System.IO;
 
 namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 {
-  
+
 
     public class UiReference
     {
@@ -24,7 +24,6 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
     {
         private EnvAgent envAgent_ = null;
         private UiReference uiReference_ = new UiReference();
-
 
         public MyInstance(string _uid, string _style, MyConfig _config, MyCatalog _catalog, LibMVCS.Logger _logger, Dictionary<string, LibMVCS.Any> _settings, MyEntryBase _entry, MonoBehaviour _mono, GameObject _rootAttachments)
             : base(_uid, _style, _config, _catalog, _logger, _settings, _entry, _mono, _rootAttachments)
@@ -80,15 +79,19 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             envAgent_.logger = logger_;
             envAgent_.slotUI = rootUI;
             envAgent_.slotWorld = rootWorld;
+            envAgent_.contentObjectsPool = contentObjectsPool;
+            envAgent_.mainFont = settings_["font.main"].AsObject() as Font;
+            envAgent_.archiveUri = Path.Combine(settings_["path.assets"].AsString(), _uri);
+
             envAgent_.Initialize();
-            string uri = Path.Combine(settings_["path.assets"].AsString(), _uri);
-            envAgent_.LoadArchive(uri);
+            envAgent_.Run();
 
             mono_.StartCoroutine(envAgent_.Update());
         }
 
         private void close()
         {
+            envAgent_.Stop();
             envAgent_.Release();
             envAgent_ = null;
         }

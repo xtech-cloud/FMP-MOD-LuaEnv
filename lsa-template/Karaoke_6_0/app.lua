@@ -1,4 +1,5 @@
 local style = require 'style'
+local archiveReader = G_API_PROXY.archiveReader
 
 local unity = CS.UnityEngine
 local ugui = CS.UnityEngine.UI
@@ -58,11 +59,11 @@ local function addBackground()
     obj.transform:SetParent(G_SLOT_UI.transform)
     local imgBg = obj:AddComponent(typeof(ugui.Image))
     resetRectTransform(obj, unity.Vector2.zero, unity.Vector2.one, unity.Vector2.zero, unity.Vector2.zero)
-    local bytes = G_ARCHIVE_READER:Read("bg.jpg")
-    local texture = unity.Texture2D(10, 10, unity.TextureFormat.RGB24, false)
-    unity.ImageConversion.LoadImage(texture, bytes)
+    -- 加载图片
+    local texture = archiveReader:ReadTexture("bg.jpg", unity.TextureFormat.RGB24)
+    local rect = unity.Rect(0, 0, texture.width, texture.height)
     local border = unity.Vector4(style.background_border_left, style.background_border_bottom, style.background_border_right, style.background_border_top)
-    local sprite = unity.Sprite.Create(texture, unity.Rect(0, 0, texture.width, texture.height), unity.Vector2(0.5, 0.5), 100, 1, unity.SpriteMeshType.Tight, border)
+    local sprite = archiveReader:CreateSprite(texture, rect, border)
     imgBg.sprite = sprite
 end
 
@@ -72,9 +73,9 @@ local function addCover()
     obj.transform:SetParent(G_SLOT_UI.transform)
     local imgBg = obj:AddComponent(typeof(ugui.RawImage))
     resetRectTransform(obj, unity.Vector2(0.5, 0.5), unity.Vector2(0.5, 0.5), unity.Vector2(0, 106), unity.Vector2(512, 512))
-    local bytes = G_ARCHIVE_READER:Read("cover.png")
-    local texture = unity.Texture2D(10, 10, unity.TextureFormat.RGBA32, false)
-    unity.ImageConversion.LoadImage(texture, bytes)
+
+    -- 加载图片
+    local texture = archiveReader:ReadTexture("cover.png", unity.TextureFormat.RGBA32)
     imgBg.texture= texture
 
     uiReference.objCover = obj
@@ -86,12 +87,11 @@ local function addPlayButton()
     obj.transform:SetParent(G_SLOT_UI.transform)
     local imgBg = obj:AddComponent(typeof(ugui.RawImage))
     resetRectTransform(obj, unity.Vector2(0, 0), unity.Vector2(0, 0), unity.Vector2(106, 50), unity.Vector2(64, 64))
-    local bytes = G_ARCHIVE_READER:Read("icon-play.png")
-    local texture = unity.Texture2D(10, 10, unity.TextureFormat.RGBA32, false)
-    unity.ImageConversion.LoadImage(texture, bytes)
+    -- 加载图片
+    local texture = archiveReader:ReadTexture("icon-play.png", unity.TextureFormat.RGBA32)
     imgBg.texture= texture
-    local button = obj:AddComponent(typeof(ugui.Button))
 
+    local button = obj:AddComponent(typeof(ugui.Button))
     button.onClick:AddListener(function()
         uiReference.objPlayButton:SetActive(false)
         uiReference.objPauseButton:SetActive(true)
@@ -107,12 +107,11 @@ local function addPauseButton()
     obj.transform:SetParent(G_SLOT_UI.transform)
     local imgBg = obj:AddComponent(typeof(ugui.RawImage))
     resetRectTransform(obj, unity.Vector2(0, 0), unity.Vector2(0, 0), unity.Vector2(106, 50), unity.Vector2(64, 64))
-    local bytes = G_ARCHIVE_READER:Read("icon-pause.png")
-    local texture = unity.Texture2D(10, 10, unity.TextureFormat.RGBA32, false)
-    unity.ImageConversion.LoadImage(texture, bytes)
+    -- 加载图片
+    local texture = archiveReader:ReadTexture("icon-pause.png", unity.TextureFormat.RGBA32)
     imgBg.texture= texture
-    local button = obj:AddComponent(typeof(ugui.Button))
 
+    local button = obj:AddComponent(typeof(ugui.Button))
     button.onClick:AddListener(function()
         uiReference.objPlayButton:SetActive(true)
         uiReference.objPauseButton:SetActive(false)
@@ -129,12 +128,11 @@ local function addVolumeButton()
     obj.transform:SetParent(G_SLOT_UI.transform)
     local imgBg = obj:AddComponent(typeof(ugui.RawImage))
     resetRectTransform(obj, unity.Vector2(1, 0), unity.Vector2(1, 0), unity.Vector2(-72, 50), unity.Vector2(48, 48))
-    local bytes = G_ARCHIVE_READER:Read("icon-volume.png")
-    local texture = unity.Texture2D(10, 10, unity.TextureFormat.RGBA32, false)
-    unity.ImageConversion.LoadImage(texture, bytes)
+    -- 加载图片
+    local texture = archiveReader:ReadTexture("icon-volume.png", unity.TextureFormat.RGBA32)
     imgBg.texture= texture
-    local button = obj:AddComponent(typeof(ugui.Button))
 
+    local button = obj:AddComponent(typeof(ugui.Button))
     button.onClick:AddListener(function()
         uiReference.objVolumePanel:SetActive(not uiReference.objVolumePanel.activeSelf)
     end)
@@ -148,12 +146,11 @@ local function addMusicButton()
     obj.transform:SetParent(G_SLOT_UI.transform)
     local img = obj:AddComponent(typeof(ugui.RawImage))
     resetRectTransform(obj, unity.Vector2(1, 0), unity.Vector2(1, 0), unity.Vector2(-192, 50), unity.Vector2(98, 38))
-    local bytes = G_ARCHIVE_READER:Read("icon-music.png")
-    local texture = unity.Texture2D(10, 10, unity.TextureFormat.RGBA32, false)
-    unity.ImageConversion.LoadImage(texture, bytes)
+    -- 加载图片
+    local texture = archiveReader:ReadTexture("icon-music.png", unity.TextureFormat.RGBA32)
     img.texture= texture
-    local button = obj:AddComponent(typeof(ugui.Button))
 
+    local button = obj:AddComponent(typeof(ugui.Button))
     button.onClick:AddListener(function()
         uiReference.objMusicButton:SetActive(false)
         uiReference.objAccompanimentButton:SetActive(true)
@@ -167,12 +164,11 @@ local function addAccompanimentButton()
     obj.transform:SetParent(G_SLOT_UI.transform)
     local img = obj:AddComponent(typeof(ugui.RawImage))
     resetRectTransform(obj, unity.Vector2(1, 0), unity.Vector2(1, 0), unity.Vector2(-192, 50), unity.Vector2(98, 38))
-    local bytes = G_ARCHIVE_READER:Read("icon-accompaniment.png")
-    local texture = unity.Texture2D(10, 10, unity.TextureFormat.RGBA32, false)
-    unity.ImageConversion.LoadImage(texture, bytes)
+    -- 加载图片
+    local texture = archiveReader:ReadTexture("icon-accompaniment.png", unity.TextureFormat.RGBA32)
     img.texture= texture
-    local button = obj:AddComponent(typeof(ugui.Button))
 
+    local button = obj:AddComponent(typeof(ugui.Button))
     button.onClick:AddListener(function()
         uiReference.objAccompanimentButton:SetActive(false)
         uiReference.objMusicButton:SetActive(true)
@@ -188,15 +184,15 @@ local function addProgressBar()
     obj.transform:SetParent(G_SLOT_UI.transform)
     local slider = buildSlider(obj)
     resetRectTransform(obj, unity.Vector2(0, 0), unity.Vector2(1, 0), unity.Vector2(-120, 53), unity.Vector2(-720, 40))
+
     local imgBackground = slider.transform:Find("Background"):GetComponent(typeof(ugui.Image))
     imgBackground.color = unity.Color(style.color_primary_dark_r, style.color_primary_dark_g, style.color_primary_dark_b, style.color_primary_dark_a)
     local imgFill= slider.transform:Find("Fill Area/Fill"):GetComponent(typeof(ugui.Image))
     imgFill.color = unity.Color(style.color_primary_light_r, style.color_primary_light_g, style.color_primary_light_b, style.color_primary_light_a)
     local imgHandle= slider.transform:Find("Handle Slide Area/Handle"):GetComponent(typeof(ugui.RawImage))
     imgFill.color = unity.Color(style.color_primary_light_r, style.color_primary_light_g, style.color_primary_light_b, style.color_primary_light_a)
-    local bytes = G_ARCHIVE_READER:Read("handle.png")
-    local texture = unity.Texture2D(10, 10, unity.TextureFormat.RGBA32, false)
-    unity.ImageConversion.LoadImage(texture, bytes)
+    -- 加载图片
+    local texture = archiveReader:ReadTexture("handle.png", unity.TextureFormat.RGBA32)
     imgHandle.texture= texture
 
     uiReference.objProgressSlider = obj
@@ -208,9 +204,9 @@ local function addVolumePanel()
     objPanel.transform:SetParent(G_SLOT_UI.transform)
     local imgPanel = objPanel:AddComponent(typeof(ugui.RawImage))
     resetRectTransform(objPanel, unity.Vector2(1, 0), unity.Vector2(1, 0), unity.Vector2(-72, 240), unity.Vector2(80, 259))
-    local bytesPanel = G_ARCHIVE_READER:Read("panel-volume.png")
-    local texturePanel = unity.Texture2D(10, 10, unity.TextureFormat.RGBA32, false)
-    unity.ImageConversion.LoadImage(texturePanel, bytesPanel)
+
+    -- 加载图片
+    local texturePanel = archiveReader:ReadTexture("panel-volume.png", unity.TextureFormat.RGBA32)
     imgPanel.texture= texturePanel
 
     local obj = unity.GameObject("sdVolume")
@@ -223,9 +219,8 @@ local function addVolumePanel()
     imgFill.color = unity.Color(style.color_primary_light_r, style.color_primary_light_g, style.color_primary_light_b, style.color_primary_light_a)
     local imgHandle= slider.transform:Find("Handle Slide Area/Handle"):GetComponent(typeof(ugui.RawImage))
     imgFill.color = unity.Color(style.color_primary_light_r, style.color_primary_light_g, style.color_primary_light_b, style.color_primary_light_a)
-    local bytes = G_ARCHIVE_READER:Read("handle.png")
-    local texture = unity.Texture2D(10, 10, unity.TextureFormat.RGBA32, false)
-    unity.ImageConversion.LoadImage(texture, bytes)
+    -- 加载图片
+    local texture = archiveReader:ReadTexture("handle.png", unity.TextureFormat.RGBA32)
     imgHandle.texture= texture
 
     obj.transform.localRotation = unity.Quaternion.Euler(0,0,90)
@@ -337,6 +332,34 @@ local function run()
     addVolumePanel()
     addMusicSource()
     addAccompanimentSource()
+
+    -- 异步预读取
+    local sequence = G_API_PROXY.preReadSequence
+    -- 预加载音乐成功
+    local onPreReadMusicSuccess = function()
+        sequence:Tick()
+        -- 加载音频
+        local audioClip = archiveReader:ReadAudioClip("music.mp3")
+        uiReference.musicSource.clip = audioClip
+    end
+
+    -- 预加载音乐失败
+    local onPreReadMusicFailure = function()
+    end
+    -- 预加载伴奏成功
+    local onPreReadAccompanimentSuccess = function()
+        sequence:Tick()
+        -- 加载音频
+        local audioClip = archiveReader:ReadAudioClip("accompaniment.mp3")
+        uiReference.accompanimentSource.clip = audioClip
+    end
+    -- 预加载伴奏失败
+    local onPreReadAccompanimentFailure = function()
+    end
+    sequence:Dial()
+    sequence:Dial()
+    archiveReader:PreReadAudioClipAsync("music.mp3", onPreReadMusicSuccess, onPreReadMusicFailure)
+    archiveReader:PreReadAudioClipAsync("accompaniment.mp3", onPreReadAccompanimentSuccess, onPreReadAccompanimentFailure)
 end
 
 return {

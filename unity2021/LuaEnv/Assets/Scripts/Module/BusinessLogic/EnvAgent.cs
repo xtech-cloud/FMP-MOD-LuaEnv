@@ -20,84 +20,18 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 
     public class EnvAgent
     {
-        public class ArchiveReaderProxy
-        {
-            public EnvAgent agent { get; set; }
-
-            private FileReader reader_;
-
-            public void Open(string _uri)
-            {
-                if (_uri.EndsWith("/"))
-                {
-                    // 从本地文件中读取所有lua脚本文件
-                    foreach (string file in Directory.GetFiles(_uri))
-                    {
-                        if (!file.EndsWith(".lua"))
-                            continue;
-
-                        string filename = Path.GetFileNameWithoutExtension(file);
-                        agent.codes_[filename] = File.ReadAllBytes(file);
-                    }
-                }
-                else
-                {
-                    reader_ = new FileReader();
-                    // 从Archive中读取所有lua脚本文件
-                    try
-                    {
-                        reader_.Open(_uri);
-                        // 读取归档类所有lua文件
-                        foreach (string entry in reader_.entries)
-                        {
-                            if (!entry.EndsWith(".lua"))
-                                continue;
-
-                            string filename = Path.GetFileNameWithoutExtension(entry);
-                            agent.codes_[filename] = reader_.Read(entry);
-
-                        }
-                    }
-                    catch (System.Exception ex)
-                    {
-                        agent.logger.Exception(ex);
-                    }
-                }
-            }
-
-            public void Close()
-            {
-                if (null != reader_)
-                {
-                    reader_.Close();
-                    reader_ = null;
-                }
-            }
-
-            public byte[] Read(string _entry)
-            {
-                if (null == reader_)
-                {
-                    return File.ReadAllBytes(Path.Combine(agent.archiveUri, _entry));
-                }
-                else
-                {
-                    return reader_.Read(_entry);
-                }
-            }
-        }
 
         public LibMVCS.Logger logger { get; set; }
         public GameObject slotUI { get; set; }
         public GameObject slotWorld { get; set; }
         public Font mainFont { get; set; }
-        public ObjectsPool contentObjectsPool { get; set; }
         public string archiveUri { get; set; }
 
         private XLua.LuaEnv luaEnv_;
         private LuaTable envTable_;
         private RootLua rootLua_;
         private ArchiveReaderProxy archiveReaderProxy_;
+        private APIProxy apiProxy_ { get; set; }
         private bool isRunning = false;
 
         public Dictionary<string, byte[]> codes_ = new Dictionary<string, byte[]>();
@@ -105,7 +39,10 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         public void Initialize()
         {
             archiveReaderProxy_ = new ArchiveReaderProxy();
-            archiveReaderProxy_.agent = this;
+            archiveReaderProxy_.logger = logger;
+            APIProxy.Options options= new APIProxy.Options();
+            options.archiveReaderProxy = archiveReaderProxy_;
+            apiProxy_ = new APIProxy(options);
 
             luaEnv_ = new XLua.LuaEnv();
             LuaTable metatable = luaEnv_.NewTable();
@@ -116,8 +53,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             luaEnv_.Global.Set<string, LibMVCS.Logger>("G_LOGGER", logger);
             luaEnv_.Global.Set<string, UnityEngine.GameObject>("G_SLOT_UI", slotUI);
             luaEnv_.Global.Set<string, UnityEngine.GameObject>("G_SLOT_WORLD", slotWorld);
-            luaEnv_.Global.Set<string, ObjectsPool>("G_OBJECTSPOOL_CONTENT", contentObjectsPool);
-            luaEnv_.Global.Set<string, ArchiveReaderProxy>("G_ARCHIVE_READER", archiveReaderProxy_);
+            luaEnv_.Global.Set<string, APIProxy>("G_API_PROXY", apiProxy_);
             luaEnv_.Global.Set<string, Font>("G_FONT_MAIN", mainFont);
             luaEnv_.AddLoader(archiveLoader);
         }
@@ -154,6 +90,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         public void Run()
         {
             archiveReaderProxy_.Open(archiveUri);
+            codes_ = archiveReaderProxy_.ReadAllScripts();
 
             try
             {

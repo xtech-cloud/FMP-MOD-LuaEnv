@@ -81,6 +81,17 @@
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>{{UNITY_HOME}}\Editor\Data\Managed\UnityEngine\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
+    <Reference Include="oelAechive">
+      <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\oelArchive-1.1.0\oelArchive.dll</HintPath>
+    </Reference>
+    <Reference Include="xlua">
+      <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\xlua-2.1.16\XLuaPlugin.dll</HintPath>
+    </Reference>
+    <Reference Include="NLayer">
+      <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\NLayer\NLayer.dll</HintPath>
+    </Reference>
+    <Reference Include="Dispatcher">
+      <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\Dispatcher\DispatcherPlugin.dll</HintPath>
+    </Reference>
   </ItemGroup>
-
 </Project>

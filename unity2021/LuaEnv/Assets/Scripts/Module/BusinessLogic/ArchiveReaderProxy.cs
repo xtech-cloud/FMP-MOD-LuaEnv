@@ -14,8 +14,19 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
     /// </summary>
     public class ArchiveReaderProxy
     {
+        public class PreReadCallback
+        {
+            public System.Action onSuccess;
+            public System.Action onFailure;
+        }
+
         public LibMVCS.Logger logger { get; set; }
         private string archiveUri { get; set; }
+
+        public PreReadCallback NewPreReadCallback()
+        {
+            return new PreReadCallback();
+        }
 
         /// <summary>
         /// 加载到内存中的对象
@@ -33,9 +44,16 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         public void Open(string _uri)
         {
             archiveUri = _uri;
-            if (!archiveUri.EndsWith("/"))
+            if (!archiveUri.EndsWith("#"))
             {
                 reader_ = new FileReader();
+                if (!File.Exists(archiveUri))
+                    logger.Error("{0} not found ", archiveUri);
+            }
+            else
+            {
+                if (!Directory.Exists(archiveUri))
+                    logger.Error("{0} not found ", archiveUri);
             }
         }
 
@@ -64,7 +82,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         {
             var codes = new Dictionary<string, byte[]>();
 
-            if (archiveUri.EndsWith("/"))
+            if (archiveUri.EndsWith("#"))
             {
                 // 从本地文件中读取所有lua脚本文件
                 foreach (string file in Directory.GetFiles(archiveUri))
@@ -110,10 +128,21 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         {
             if (null == reader_)
             {
-                return File.ReadAllBytes(Path.Combine(archiveUri, _entry));
+                string path = Path.Combine(archiveUri, _entry);
+                if (!File.Exists(path))
+                {
+                    logger.Error("{0} not found in directory", _entry);
+                    return null;
+                }
+                return File.ReadAllBytes(path);
             }
             else
             {
+                if (!reader_.entries.Contains(_entry))
+                {
+                    logger.Error("{0} not found in archive", _entry);
+                    return null;
+                }
                 return reader_.Read(_entry);
             }
         }
@@ -131,13 +160,19 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             {
                 string path = Path.Combine(archiveUri, _entry);
                 if (!File.Exists(path))
+                {
+                    logger.Error("{0} not found in directory", _entry);
                     return null;
+                }
                 bytes = File.ReadAllBytes(path);
             }
             else
             {
                 if (!reader_.entries.Contains(_entry))
+                {
+                    logger.Error("{0} not found in archive", _entry);
                     return null;
+                }
                 bytes = reader_.Read(_entry);
             }
 
@@ -167,13 +202,19 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             {
                 string path = Path.Combine(archiveUri, _entry);
                 if (!File.Exists(path))
+                {
+                    logger.Error("{0} not found in directory", _entry);
                     return null;
+                }
                 bytes = File.ReadAllBytes(path);
             }
             else
             {
                 if (!reader_.entries.Contains(_entry))
+                {
+                    logger.Error("{0} not found in archive", _entry);
                     return null;
+                }
                 bytes = reader_.Read(_entry);
             }
 
@@ -193,38 +234,48 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         /// 异步预读取音频
         /// </summary>
         /// <param name="_entry"></param>
-        /// <param name="_onSuccess"></param>
-        /// <param name="_onFailure"></param>
-        public void PreReadAudioClipAsync(string _entry, System.Action _onSuccess, System.Action _onFailure)
+        /// <param name="_callback">回调</param>
+        public void PreReadAudioClipAsync(string _entry, PreReadCallback _callback)
         {
             if (objects_.ContainsKey(_entry))
                 return;
 
+            System.Action onSuccess = _callback.onSuccess;
+            System.Action onFailure = _callback.onFailure;
+            string entry = _entry;
+            byte[] bytes = null;
+            //reader 不是线程安全的，所以不能放在线程中执行
+            if (null == reader_)
+            {
+                string path = Path.Combine(archiveUri, entry);
+                if (!File.Exists(path))
+                {
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                    {
+                        logger.Error("{0} not found in directory", entry);
+                        onFailure();
+                    });
+                    return;
+                }
+                bytes = File.ReadAllBytes(path);
+            }
+            else
+            {
+                if (!reader_.entries.Contains(entry))
+                {
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                    {
+                        logger.Error("{0} not found in archive", entry);
+                        onFailure();
+                    });
+                    return;
+                }
+                bytes = reader_.Read(entry);
+            }
+
+            // 将耗时间的转换函数放在线程中执行
             Task.Run(() =>
             {
-                byte[] bytes = null;
-                if (null == reader_)
-                {
-                    string path = Path.Combine(archiveUri, _entry);
-                    if (!File.Exists(path))
-                    {
-                        Debug.LogError("!!!!!!");
-                        _onFailure();
-                        return;
-                    }
-                    bytes = File.ReadAllBytes(path);
-                }
-                else
-                {
-                    if (!reader_.entries.Contains(_entry))
-                    {
-                        Debug.LogError("!!!!!!");
-                        _onFailure();
-                        return;
-                    }
-                    bytes = reader_.Read(_entry);
-                }
-
                 Stream memStream = new MemoryStream(bytes);
                 var mpegFile = new MpegFile(memStream);
                 int lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
@@ -234,11 +285,12 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 // 需要在主线程执行
                 UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
-                    AudioClip ac = AudioClip.Create(_entry, lengthSamples, mpegFile.Channels, mpegFile.SampleRate, false);
+                    logger.Info("entry:{0} lengthBytes:{1} lengthSamples:{2} readCount:{3}", entry, bytes.Length, lengthSamples, readCount);
+                    AudioClip ac = AudioClip.Create(entry, lengthSamples, mpegFile.Channels, mpegFile.SampleRate, false);
                     ac.SetData(samples, 0);
-                    objects_[_entry] = ac;
-                    _onSuccess();
+                    objects_[entry] = ac;
                     printObjectsStatus();
+                    onSuccess();
                 });
             });
         }

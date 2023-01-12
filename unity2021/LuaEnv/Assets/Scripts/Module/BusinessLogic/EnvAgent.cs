@@ -14,7 +14,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         public System.Action Run = null;
         public System.Action Update = null;
         public System.Action Stop = null;
-        public System.Action<object> HandleEvent = null;
+        public System.Action<string, object> HandleEvent = null;
     }
 
 
@@ -66,8 +66,10 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 rootLua_.Run = null;
                 rootLua_.Update = null;
                 rootLua_.Stop = null;
+                rootLua_.HandleEvent = null;
                 rootLua_ = null;
             }
+            //luaEnv_.DoString("local util = require 'xlua.util'\r\nutil.print_func_ref_by_csharp()");
             envTable_.Dispose();
             envTable_ = null;
             luaEnv_.Dispose();
@@ -120,6 +122,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 
         public void Stop()
         {
+            rootLua_.Stop();
             archiveReaderProxy_.Close();
         }
 

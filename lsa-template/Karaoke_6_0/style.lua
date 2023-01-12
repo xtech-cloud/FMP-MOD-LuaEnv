@@ -16,8 +16,8 @@ return {
     -- 主色暗色部分的透明值，范围为[0.0, 1.0]
     color_primary_dark_a = 1,
 
-    background_border_left = 400,
-    background_border_right = 400,
-    background_border_top = 400,
-    background_border_bottom = 400,
+    frame_border_left = 320,
+    frame_border_right = 320,
+    frame_border_top = 100,
+    frame_border_bottom = 100,
 }

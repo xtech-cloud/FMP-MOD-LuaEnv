@@ -39,11 +39,11 @@
           Parameter.type: 参数的类型，支持的类型为string,int,float,bool
         -->
         <Subjects>
-            <Subject message="/XTC/LuaEnv/Open">
+            <Subject message="_/XTC/LuaEnv/Open">
                 <Parameters>
                     <Parameter key="uid" value="default" type="string"/>
                     <Parameter key="source" value="assloud://" type="string"/>
-                    <Parameter key="uri" value="XTC.LuaEnv/_resources/1.lsa/" type="string"/>
+                    <Parameter key="uri" value="XTC.LuaEnv/_resources/1.lsa#" type="string"/>
                     <Parameter key="delay" value="0" type="float"/>
                 </Parameters>
             </Subject>

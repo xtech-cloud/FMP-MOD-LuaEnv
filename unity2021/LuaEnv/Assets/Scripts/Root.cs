@@ -37,7 +37,7 @@ public class Root : RootBase
 
         if (GUI.Button(new Rect(0, 30, 60, 30), "Open"))
         {
-            entry_.__DebugOpen("test", "assloud://", "XTC.LuaEnv/_resources/1.lsa", 0.5f);
+            entry_.__DebugOpen("test", "assloud://", "XTC.LuaEnv/_resources/1.lsa#", 0.5f);
         }
 
         if (GUI.Button(new Rect(0, 60, 60, 30), "Show"))

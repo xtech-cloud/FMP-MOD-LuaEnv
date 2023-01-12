@@ -250,11 +250,8 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 string path = Path.Combine(archiveUri, entry);
                 if (!File.Exists(path))
                 {
-                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                    {
-                        logger.Error("{0} not found in directory", entry);
-                        onFailure();
-                    });
+                    logger.Error("{0} not found in directory", entry);
+                    onFailure();
                     return;
                 }
                 bytes = File.ReadAllBytes(path);
@@ -263,11 +260,8 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             {
                 if (!reader_.entries.Contains(entry))
                 {
-                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                    {
-                        logger.Error("{0} not found in archive", entry);
-                        onFailure();
-                    });
+                    logger.Error("{0} not found in archive", entry);
+                    onFailure();
                     return;
                 }
                 bytes = reader_.Read(entry);
@@ -281,7 +275,6 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 int lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
                 float[] samples = new float[lengthSamples * mpegFile.Channels];
                 int readCount = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
-
                 // 需要在主线程执行
                 UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {

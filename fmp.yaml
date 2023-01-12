@@ -1,7 +1,7 @@
 org_name: XTC
 module_name: LuaEnv
 generate:
-  active: true
+  active: false
   database_driver: none
   debug: false
   unity_solution: true

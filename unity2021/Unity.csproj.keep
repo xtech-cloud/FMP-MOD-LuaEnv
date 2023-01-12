@@ -88,10 +88,10 @@
       <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\xlua-2.1.16\XLuaPlugin.dll</HintPath>
     </Reference>
     <Reference Include="NLayer">
-      <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\NLayer\NLayer.dll</HintPath>
+      <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\NLayer-1.14.0\NLayer.dll</HintPath>
     </Reference>
     <Reference Include="Dispatcher">
-      <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\Dispatcher\DispatcherPlugin.dll</HintPath>
+      <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\Dispatcher-1.0.0\DispatcherPlugin.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

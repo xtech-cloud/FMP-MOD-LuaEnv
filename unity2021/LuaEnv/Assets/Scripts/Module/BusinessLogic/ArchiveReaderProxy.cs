@@ -6,6 +6,7 @@ using XTC.oelArchive;
 using NLayer;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 {
@@ -41,6 +42,8 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         /// </summary>
         private FileReader reader_ = null;
 
+        private List<CancellationTokenSource> tokenSourceS_ = new List<CancellationTokenSource>();
+
         public void Open(string _uri)
         {
             archiveUri = _uri;
@@ -59,6 +62,13 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 
         public void Close()
         {
+            logger.Debug("ready to cancel {0} tasks", tokenSourceS_.Count);
+            foreach(var tokenSource in tokenSourceS_)
+            {
+                tokenSource.Cancel();
+            }
+            tokenSourceS_.Clear();
+
             if (null != reader_)
             {
                 reader_.Close();
@@ -250,11 +260,8 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 string path = Path.Combine(archiveUri, entry);
                 if (!File.Exists(path))
                 {
-                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                    {
-                        logger.Error("{0} not found in directory", entry);
-                        onFailure();
-                    });
+                    logger.Error("{0} not found in directory", entry);
+                    onFailure();
                     return;
                 }
                 bytes = File.ReadAllBytes(path);
@@ -263,36 +270,39 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             {
                 if (!reader_.entries.Contains(entry))
                 {
-                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                    {
-                        logger.Error("{0} not found in archive", entry);
-                        onFailure();
-                    });
+                    logger.Error("{0} not found in archive", entry);
+                    onFailure();
                     return;
                 }
                 bytes = reader_.Read(entry);
             }
 
             // 将耗时间的转换函数放在线程中执行
-            Task.Run(() =>
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            tokenSourceS_.Add(tokenSource);
+            Task.Factory.StartNew(() =>
             {
                 Stream memStream = new MemoryStream(bytes);
                 var mpegFile = new MpegFile(memStream);
                 int lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
                 float[] samples = new float[lengthSamples * mpegFile.Channels];
                 int readCount = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
+                if (tokenSource.IsCancellationRequested)
+                    return;
 
+                if (tokenSourceS_.Contains(tokenSource))
+                    tokenSourceS_.Remove(tokenSource);
                 // 需要在主线程执行
                 UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
-                    logger.Info("entry:{0} lengthBytes:{1} lengthSamples:{2} readCount:{3}", entry, bytes.Length, lengthSamples, readCount);
+                    logger.Trace("entry:{0} lengthBytes:{1} lengthSamples:{2} readCount:{3}", entry, bytes.Length, lengthSamples, readCount);
                     AudioClip ac = AudioClip.Create(entry, lengthSamples, mpegFile.Channels, mpegFile.SampleRate, false);
                     ac.SetData(samples, 0);
                     objects_[entry] = ac;
                     printObjectsStatus();
                     onSuccess();
                 });
-            });
+            }, tokenSource.Token);
         }
 
         private void printObjectsStatus()

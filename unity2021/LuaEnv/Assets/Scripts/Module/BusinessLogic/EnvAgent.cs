@@ -40,7 +40,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         {
             archiveReaderProxy_ = new ArchiveReaderProxy();
             archiveReaderProxy_.logger = logger;
-            APIProxy.Options options= new APIProxy.Options();
+            APIProxy.Options options = new APIProxy.Options();
             options.archiveReaderProxy = archiveReaderProxy_;
             apiProxy_ = new APIProxy(options);
 
@@ -69,7 +69,6 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 rootLua_.HandleEvent = null;
                 rootLua_ = null;
             }
-            //luaEnv_.DoString("local util = require 'xlua.util'\r\nutil.print_func_ref_by_csharp()");
             envTable_.Dispose();
             envTable_ = null;
             luaEnv_.Dispose();
@@ -110,19 +109,15 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 return;
             }
 
-            if (null == rootLua_.Run)
-            {
-                logger.Error("rootLua.Run is null");
-                return;
-            }
-
-            rootLua_.Run();
+            if (null != rootLua_.Run)
+                rootLua_.Run();
             isRunning = true;
         }
 
         public void Stop()
         {
-            rootLua_.Stop();
+            if (null != rootLua_ && null != rootLua_.Stop)
+                rootLua_.Stop();
             archiveReaderProxy_.Close();
         }
 

@@ -292,7 +292,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 
                 if (tokenSourceS_.Contains(tokenSource))
                     tokenSourceS_.Remove(tokenSource);
-                // 需要在主线程执行
+
                 UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
                     logger.Trace("entry:{0} lengthBytes:{1} lengthSamples:{2} readCount:{3}", entry, bytes.Length, lengthSamples, readCount);

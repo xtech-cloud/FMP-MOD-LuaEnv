@@ -29,6 +29,7 @@ mkdir _dist_
 DEL /Q/S _dist_\*.dll
 copy Unity.csproj.keep _build_\Unity.csproj
 xcopy /Q/S/Y LuaEnv\Assets\Scripts\Module _build_\Module\
+xcopy /Q/S/Y LuaEnv\Assets\XLua\Gen _build_\Gen\
 cd _build_
 powershell -Command "(gc Unity.csproj) -replace '{{UNITY_HOME}}', '%UNITY_HOME%' | Out-File Unity.csproj"
 powershell -Command "(gc Unity.csproj) -replace '{{WORK_DIR}}', '%WORK_DIR%' | Out-File Unity.csproj"

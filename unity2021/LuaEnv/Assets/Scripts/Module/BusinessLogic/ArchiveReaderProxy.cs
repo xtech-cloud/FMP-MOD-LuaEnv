@@ -63,7 +63,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         public void Close()
         {
             logger.Debug("ready to cancel {0} tasks", tokenSourceS_.Count);
-            foreach(var tokenSource in tokenSourceS_)
+            foreach (var tokenSource in tokenSourceS_)
             {
                 tokenSource.Cancel();
             }
@@ -277,32 +277,97 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 bytes = reader_.Read(entry);
             }
 
-            // 将耗时间的转换函数放在线程中执行
-            CancellationTokenSource tokenSource = new CancellationTokenSource();
-            tokenSourceS_.Add(tokenSource);
-            Task.Factory.StartNew(() =>
+            bool useStreamMode = false;
+
+            if (useStreamMode)
             {
                 Stream memStream = new MemoryStream(bytes);
                 var mpegFile = new MpegFile(memStream);
-                int lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
-                float[] samples = new float[lengthSamples * mpegFile.Channels];
-                int readCount = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
-                if (tokenSource.IsCancellationRequested)
-                    return;
+                // sizeof(float) is 4
+                // audioClip的样本帧数
+                int audioClipLengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
+                logger.Trace("entry:{0} bytes:{1} mpegFile.Length:{2} mpegFile.Channels:{3} mpegFile.SampleRate:{4} audioClip.lengthSamples:{5}", entry, bytes.Length, mpegFile.Length, mpegFile.Channels, mpegFile.SampleRate, audioClipLengthSamples);
 
-                if (tokenSourceS_.Contains(tokenSource))
-                    tokenSourceS_.Remove(tokenSource);
-
-                UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                AudioClip.PCMReaderCallback onRead = (_data) =>
                 {
-                    logger.Trace("entry:{0} lengthBytes:{1} lengthSamples:{2} readCount:{3}", entry, bytes.Length, lengthSamples, readCount);
-                    AudioClip ac = AudioClip.Create(entry, lengthSamples, mpegFile.Channels, mpegFile.SampleRate, false);
-                    ac.SetData(samples, 0);
-                    objects_[entry] = ac;
-                    printObjectsStatus();
-                    onSuccess();
-                });
-            }, tokenSource.Token);
+                    //logger.Info("{0}/{1}  {2}/{3} {4}", mpegFile.Position, mpegFile.Length, mpegFile.Time.TotalSeconds, mpegFile.Duration.TotalSeconds, _data.Length);
+                    //TODO 处理拖拽进度条时抛出的异常
+                    int actualReadCount = mpegFile.ReadSamples(_data, 0, _data.Length);
+                };
+                // _position的范围为[0, audioClipLengthSamples]
+                AudioClip.PCMSetPositionCallback onSetPosition = (_position) =>
+                {
+                    float percentage = _position / (float)audioClipLengthSamples;
+                    if (percentage < 0)
+                        percentage = 0f;
+                    else if (percentage > 1)
+                        percentage = 1.0f;
+                    mpegFile.Time = percentage * mpegFile.Duration;
+                };
+                AudioClip ac = AudioClip.Create(entry, audioClipLengthSamples, mpegFile.Channels, mpegFile.SampleRate, true, onRead, onSetPosition);
+                objects_[entry] = ac;
+                printObjectsStatus();
+                onSuccess();
+            }
+            else
+            {
+                // 将耗时间的转换函数放在线程中执行
+                CancellationTokenSource tokenSource = new CancellationTokenSource();
+                tokenSourceS_.Add(tokenSource);
+                Task.Factory.StartNew(() =>
+                {
+                    int readCount = 0;
+                    int lengthSamples = 0;
+                    int channels = 0;
+                    int sampleRate = 0;
+                    float[] samples = null;
+                    try
+                    {
+                        Stream memStream = new MemoryStream(bytes);
+                        var mpegFile = new MpegFile(memStream);
+                        lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
+                        samples = new float[lengthSamples * mpegFile.Channels];
+                        channels = mpegFile.Channels;
+                        sampleRate = mpegFile.SampleRate;
+                        logger.Trace("entry:{0} bytes:{1} mpegFile.Length:{2} mpegFile.Channels:{3} mpegFile.SampleRate:{4}", entry, bytes.Length, mpegFile.Length, mpegFile.Channels, mpegFile.SampleRate);
+                        readCount = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        logger.Exception(ex);
+                        if (tokenSourceS_.Contains(tokenSource))
+                            tokenSourceS_.Remove(tokenSource);
+                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                        {
+                            onFailure();
+                        });
+                        return;
+                    }
+
+                    if (tokenSource.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    if (tokenSourceS_.Contains(tokenSource))
+                        tokenSourceS_.Remove(tokenSource);
+
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                    {
+                        if (0 == readCount)
+                        {
+                            onFailure();
+                            return;
+                        }
+
+                        AudioClip ac = AudioClip.Create(entry, lengthSamples, channels, sampleRate, false);
+                        ac.SetData(samples, 0);
+                        objects_[entry] = ac;
+                        printObjectsStatus();
+                        onSuccess();
+                    });
+                }, tokenSource.Token);
+            }
         }
 
         private void printObjectsStatus()

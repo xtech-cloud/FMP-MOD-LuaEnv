@@ -20,7 +20,6 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 
     public class EnvAgent
     {
-
         public LibMVCS.Logger logger { get; set; }
         public GameObject slotUI { get; set; }
         public GameObject slotWorld { get; set; }
@@ -36,8 +35,12 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 
         public Dictionary<string, byte[]> codes_ = new Dictionary<string, byte[]>();
 
+        private CoroutineRunner coroutineRunner_ = null;
+
         public void Initialize()
         {
+            coroutineRunner_ = (new GameObject("CoroutineRunner")).AddComponent<CoroutineRunner>();
+
             archiveReaderProxy_ = new ArchiveReaderProxy();
             archiveReaderProxy_.logger = logger;
             APIProxy.Options options = new APIProxy.Options();
@@ -55,12 +58,18 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             luaEnv_.Global.Set<string, UnityEngine.GameObject>("G_SLOT_WORLD", slotWorld);
             luaEnv_.Global.Set<string, APIProxy>("G_API_PROXY", apiProxy_);
             luaEnv_.Global.Set<string, Font>("G_FONT_MAIN", mainFont);
+            luaEnv_.Global.Set<string, CoroutineRunner>("G_CoroutineRunner", coroutineRunner_);
             luaEnv_.AddLoader(archiveLoader);
         }
 
         public void Release()
         {
             isRunning = false;
+            if(null != coroutineRunner_)
+            {
+                GameObject.Destroy(coroutineRunner_.gameObject);
+                coroutineRunner_ = null;
+            }
             if (null != rootLua_)
             {
                 rootLua_.Run = null;
@@ -82,6 +91,8 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             while (isRunning)
             {
                 yield return new UnityEngine.WaitForEndOfFrame();
+                if (luaEnv_ != null)
+                    luaEnv_.Tick();
                 if (null == rootLua_ || null == rootLua_.Update)
                     continue;
                 rootLua_.Update();

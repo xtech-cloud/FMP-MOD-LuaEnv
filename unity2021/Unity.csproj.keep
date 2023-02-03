@@ -87,8 +87,8 @@
     <Reference Include="xlua">
       <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\xlua-2.1.16\XLuaPlugin.dll</HintPath>
     </Reference>
-    <Reference Include="NLayer">
-      <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\NLayer-1.14.0\NLayerPlugin.dll</HintPath>
+    <Reference Include="NVorbis">
+      <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\NVorbis-0.15.0\NVorbis.dll</HintPath>
     </Reference>
     <Reference Include="Dispatcher">
       <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\Dispatcher-1.0.0\DispatcherPlugin.dll</HintPath>

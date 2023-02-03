@@ -3,7 +3,6 @@ using System.IO;
 using UnityEngine;
 using LibMVCS = XTC.FMP.LIB.MVCS;
 using XTC.oelArchive;
-using NLayer;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
@@ -228,13 +227,19 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 bytes = reader_.Read(_entry);
             }
 
+            NVorbis.VorbisReader vorbisReader = null;
+            AudioClip.PCMReaderCallback onRead = (_data) =>
+            {
+                vorbisReader.ReadSamples(_data, 0, _data.Length);
+            };
+            AudioClip.PCMSetPositionCallback onSetPosition = (_position) =>
+            {
+                vorbisReader.SamplePosition = _position;
+            };
+
             Stream memStream = new MemoryStream(bytes);
-            var mpegFile = new MpegFile(memStream);
-            int lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
-            float[] samples = new float[lengthSamples * mpegFile.Channels];
-            int readCount = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
-            AudioClip ac = AudioClip.Create(_entry, lengthSamples, mpegFile.Channels, mpegFile.SampleRate, false);
-            ac.SetData(samples, 0);
+            vorbisReader = new NVorbis.VorbisReader(memStream);
+            AudioClip ac = AudioClip.Create(_entry, (int)vorbisReader.TotalSamples, vorbisReader.Channels, vorbisReader.SampleRate, false, onRead, onSetPosition);
             objects_[_entry] = ac;
             printObjectsStatus();
             return ac;
@@ -277,97 +282,41 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 bytes = reader_.Read(entry);
             }
 
-            bool useStreamMode = false;
-
-            if (useStreamMode)
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            tokenSourceS_.Add(tokenSource);
+            Task.Factory.StartNew(() =>
             {
-                Stream memStream = new MemoryStream(bytes);
-                var mpegFile = new MpegFile(memStream);
-                // sizeof(float) is 4
-                // audioClip的样本帧数
-                int audioClipLengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
-                logger.Trace("entry:{0} bytes:{1} mpegFile.Length:{2} mpegFile.Channels:{3} mpegFile.SampleRate:{4} audioClip.lengthSamples:{5}", entry, bytes.Length, mpegFile.Length, mpegFile.Channels, mpegFile.SampleRate, audioClipLengthSamples);
-
+                NVorbis.VorbisReader vorbisReader = null;
                 AudioClip.PCMReaderCallback onRead = (_data) =>
                 {
-                    //logger.Info("{0}/{1}  {2}/{3} {4}", mpegFile.Position, mpegFile.Length, mpegFile.Time.TotalSeconds, mpegFile.Duration.TotalSeconds, _data.Length);
-                    //TODO 处理拖拽进度条时抛出的异常
-                    int actualReadCount = mpegFile.ReadSamples(_data, 0, _data.Length);
+                    vorbisReader.ReadSamples(_data, 0, _data.Length);
                 };
-                // _position的范围为[0, audioClipLengthSamples]
                 AudioClip.PCMSetPositionCallback onSetPosition = (_position) =>
                 {
-                    float percentage = _position / (float)audioClipLengthSamples;
-                    if (percentage < 0)
-                        percentage = 0f;
-                    else if (percentage > 1)
-                        percentage = 1.0f;
-                    mpegFile.Time = percentage * mpegFile.Duration;
+                    vorbisReader.SamplePosition = _position;
                 };
-                AudioClip ac = AudioClip.Create(entry, audioClipLengthSamples, mpegFile.Channels, mpegFile.SampleRate, true, onRead, onSetPosition);
-                objects_[entry] = ac;
-                printObjectsStatus();
-                onSuccess();
-            }
-            else
-            {
-                // 将耗时间的转换函数放在线程中执行
-                CancellationTokenSource tokenSource = new CancellationTokenSource();
-                tokenSourceS_.Add(tokenSource);
-                Task.Factory.StartNew(() =>
+                Stream memStream = new MemoryStream(bytes);
+                vorbisReader = new NVorbis.VorbisReader(memStream);
+
+                if (tokenSource.IsCancellationRequested)
+                    return;
+
+                if (tokenSourceS_.Contains(tokenSource))
+                    tokenSourceS_.Remove(tokenSource);
+
+                bool isStream = true;
+                UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
-                    int readCount = 0;
-                    int lengthSamples = 0;
-                    int channels = 0;
-                    int sampleRate = 0;
-                    float[] samples = null;
-                    try
-                    {
-                        Stream memStream = new MemoryStream(bytes);
-                        var mpegFile = new MpegFile(memStream);
-                        lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
-                        samples = new float[lengthSamples * mpegFile.Channels];
-                        channels = mpegFile.Channels;
-                        sampleRate = mpegFile.SampleRate;
-                        logger.Trace("entry:{0} bytes:{1} mpegFile.Length:{2} mpegFile.Channels:{3} mpegFile.SampleRate:{4}", entry, bytes.Length, mpegFile.Length, mpegFile.Channels, mpegFile.SampleRate);
-                        readCount = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
-                    }
-                    catch (System.Exception ex)
-                    {
-                        logger.Exception(ex);
-                        if (tokenSourceS_.Contains(tokenSource))
-                            tokenSourceS_.Remove(tokenSource);
-                        UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                        {
-                            onFailure();
-                        });
-                        return;
-                    }
+                    //TODO
+                    // 当isStream==false时，此函数将会引起主线程卡顿
+                    // 当isStream==true时，onSetPosition在拖动进度条时有几率抛出异常
+                    AudioClip ac = AudioClip.Create(_entry, (int)vorbisReader.TotalSamples, vorbisReader.Channels, vorbisReader.SampleRate, isStream, onRead, onSetPosition);
+                    objects_[entry] = ac;
+                    printObjectsStatus();
+                    onSuccess();
+                });
 
-                    if (tokenSource.IsCancellationRequested)
-                    {
-                        return;
-                    }
-
-                    if (tokenSourceS_.Contains(tokenSource))
-                        tokenSourceS_.Remove(tokenSource);
-
-                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                    {
-                        if (0 == readCount)
-                        {
-                            onFailure();
-                            return;
-                        }
-
-                        AudioClip ac = AudioClip.Create(entry, lengthSamples, channels, sampleRate, false);
-                        ac.SetData(samples, 0);
-                        objects_[entry] = ac;
-                        printObjectsStatus();
-                        onSuccess();
-                    });
-                }, tokenSource.Token);
-            }
+            }, tokenSource.Token);
         }
 
         private void printObjectsStatus()

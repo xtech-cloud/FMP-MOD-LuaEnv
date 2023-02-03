@@ -58,7 +58,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             luaEnv_.Global.Set<string, UnityEngine.GameObject>("G_SLOT_WORLD", slotWorld);
             luaEnv_.Global.Set<string, APIProxy>("G_API_PROXY", apiProxy_);
             luaEnv_.Global.Set<string, Font>("G_FONT_MAIN", mainFont);
-            luaEnv_.Global.Set<string, CoroutineRunner>("G_CoroutineRunner", coroutineRunner_);
+            luaEnv_.Global.Set<string, CoroutineRunner>("G_RUNNER_COROUTINE", coroutineRunner_);
             luaEnv_.AddLoader(archiveLoader);
         }
 

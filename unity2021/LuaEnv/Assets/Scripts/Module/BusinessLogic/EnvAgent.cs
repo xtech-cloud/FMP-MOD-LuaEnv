@@ -65,7 +65,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         public void Release()
         {
             isRunning = false;
-            if(null != coroutineRunner_)
+            if (null != coroutineRunner_)
             {
                 GameObject.Destroy(coroutineRunner_.gameObject);
                 coroutineRunner_ = null;

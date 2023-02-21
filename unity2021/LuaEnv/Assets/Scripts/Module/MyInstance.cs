@@ -1,9 +1,8 @@
 
 
+using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UI;
 using LibMVCS = XTC.FMP.LIB.MVCS;
 using XTC.FMP.MOD.LuaEnv.LIB.Proto;
 using XTC.FMP.MOD.LuaEnv.LIB.MVCS;
@@ -69,11 +68,12 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         {
             rootUI.gameObject.SetActive(false);
             rootWorld.gameObject.SetActive(false);
-            close();
+            mono_.StartCoroutine(close());
         }
 
         private void open(string _source, string _uri)
         {
+            logger_.Trace("************* LuaEnvAgent is created ************");
             // 创建lua环境
             envAgent_ = new EnvAgent();
             envAgent_.logger = logger_;
@@ -88,11 +88,13 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             mono_.StartCoroutine(envAgent_.Update());
         }
 
-        private void close()
+        private IEnumerator close()
         {
             envAgent_.Stop();
+            yield return new WaitForEndOfFrame();
             envAgent_.Release();
             envAgent_ = null;
+            logger_.Trace("************* LuaEnvAgent is destroied ************");
         }
     }
 }

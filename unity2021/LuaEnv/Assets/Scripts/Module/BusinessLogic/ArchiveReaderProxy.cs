@@ -61,7 +61,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 
         public void Close()
         {
-            logger.Debug("ready to cancel {0} tasks", tokenSourceS_.Count);
+            logger.Trace("ready to cancel {0} tasks", tokenSourceS_.Count);
             foreach (var tokenSource in tokenSourceS_)
             {
                 tokenSource.Cancel();
@@ -73,6 +73,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 reader_.Close();
                 reader_ = null;
             }
+            logger.Trace("ready to destroy {0} objects from memory", objects_.Count);
             foreach (var obj in objects_.Values)
             {
                 Object.Destroy(obj);
@@ -321,7 +322,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 
         private void printObjectsStatus()
         {
-            logger.Debug("current archive has {0} Objects loaded in memory", objects_.Count);
+            logger.Trace("current archive has {0} Objects loaded in memory", objects_.Count);
         }
     }
 }

@@ -81,6 +81,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             envAgent_.slotWorld = rootWorld;
             envAgent_.mainFont = settings_["font.main"].AsObject() as Font;
             envAgent_.archiveUri = Path.Combine(settings_["path.assets"].AsString(), _uri);
+            envAgent_.style = style_;
 
             envAgent_.Initialize();
             envAgent_.Run();

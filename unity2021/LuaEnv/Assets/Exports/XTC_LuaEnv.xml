@@ -16,9 +16,19 @@
     <GRPC address="https://localhost:19000"/>
     <!-- 样式列表
       name: 名称
+      StandardColor: 标准色，如未定义，lsa使用自己的颜色，如定义，lsa优先使用标准色
+      StandardColor.primary: 主要色，RGBA的HEX值
+      StandardColor.secondary: 次要色，RGBA的HEX值
+      StandardColor.success: 成功色，RGBA的HEX值
+      StandardColor.danger: 危险色，RGBA的HEX值
+      StandardColor.warning: 警告色，RGBA的HEX值
+      StandardColor.info: 主要颜色，RGBA的HEX值
+      StandardColor.light: 亮色，RGBA的HEX值
+      StandardColor.dark: 暗色，RGBA的HEX值
     -->
     <Styles>
         <Style name="default">
+          <StandardColor primary="" secondary="" success="" danger="" warning="" info="" light="" dark=""/>
         </Style>
     </Styles>
     <!-- 预创建的实例列表

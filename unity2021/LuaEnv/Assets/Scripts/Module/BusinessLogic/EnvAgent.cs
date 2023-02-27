@@ -24,6 +24,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         public GameObject slotUI { get; set; }
         public GameObject slotWorld { get; set; }
         public Font mainFont { get; set; }
+        public MyConfig.Style style { get; set; }
         public string archiveUri { get; set; }
 
         private XLua.LuaEnv luaEnv_;
@@ -59,6 +60,14 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             luaEnv_.Global.Set<string, APIProxy>("G_API_PROXY", apiProxy_);
             luaEnv_.Global.Set<string, Font>("G_FONT_MAIN", mainFont);
             luaEnv_.Global.Set<string, CoroutineRunner>("G_RUNNER_COROUTINE", coroutineRunner_);
+            luaEnv_.Global.Set<string, string>("G_STANDARDCOLOR_PRIMARY", style.standardColor.primary);
+            luaEnv_.Global.Set<string, string>("G_STANDARDCOLOR_SECONDARY", style.standardColor.secondary);
+            luaEnv_.Global.Set<string, string>("G_STANDARDCOLOR_SUCCESS", style.standardColor.success);
+            luaEnv_.Global.Set<string, string>("G_STANDARDCOLOR_DANGER", style.standardColor.danger);
+            luaEnv_.Global.Set<string, string>("G_STANDARDCOLOR_WARNING", style.standardColor.warning);
+            luaEnv_.Global.Set<string, string>("G_STANDARDCOLOR_INFO", style.standardColor.info);
+            luaEnv_.Global.Set<string, string>("G_STANDARDCOLOR_LIGHT", style.standardColor.light);
+            luaEnv_.Global.Set<string, string>("G_STANDARDCOLOR_DARK", style.standardColor.dark);
             luaEnv_.AddLoader(archiveLoader);
         }
 

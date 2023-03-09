@@ -48,6 +48,9 @@
     <Reference Include="fmp-xtc-LuaEnv-lib-proto">
       <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\fmp-xtc-luaenv\fmp-xtc-luaenv-lib-proto.dll</HintPath>
     </Reference>
+    <Reference Include="NVorbis">
+      <HintPath>{{WORK_DIR}}\LuaEnv\Assets\3rd\NVorbis-0.10.5\NVorbis.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>{{WORK_DIR}}\LuaEnv\Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
     </Reference>

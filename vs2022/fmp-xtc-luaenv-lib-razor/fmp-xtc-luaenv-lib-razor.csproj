@@ -2,14 +2,16 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>XTC.FMP.MOD.LuaEnv.LIB.Razor</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AntDesign.ProLayout" Version="0.12.4" />
+    <PackageReference Include="AntDesign.Charts" Version="0.3.0" />
+    <PackageReference Include="AntDesign.ProLayout" Version="0.13.1" />
+    <PackageReference Include="AntDesign" Version="0.14.2" />
   </ItemGroup>
 
 

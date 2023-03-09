@@ -19,7 +19,7 @@ namespace XTC.FMP.MOD.LuaEnv.App.Service
         /// <remarks>
         /// 参数为自动注入，支持多个参数，DatabaseSettings的注入点在Program.cs中，自定义设置可在MyProgram.PreBuild中注入
         /// </remarks>
-        public SingletonServices(IOptions<DatabaseSettings> _databaseSettings, IOptions<MinIOSettings> _minioSettings)
+        public SingletonServices(IOptions<DatabaseSettings> _databaseSettings)
         {
             mongoClient_ = new MongoClient(_databaseSettings.Value.ConnectionString);
             mongoDatabase_ = mongoClient_.GetDatabase(_databaseSettings.Value.DatabaseName);

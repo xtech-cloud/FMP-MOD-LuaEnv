@@ -2,17 +2,18 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>XTC.FMP.MOD.LuaEnv.App.Service</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.46.0" />
-    <PackageReference Include="Grpc.AspNetCore.HealthChecks" Version="2.46.0" />
-    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.46.0" />
-    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.46.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.51.0" />
+    <PackageReference Include="Grpc.AspNetCore.HealthChecks" Version="2.51.0" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.51.0" />
+    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.51.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Grpc.JsonTranscoding" Version="7.0.3" />
 
   </ItemGroup>
 

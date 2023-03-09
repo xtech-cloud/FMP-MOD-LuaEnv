@@ -46,7 +46,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 getLogger().Exception(ex);
             }
             getLogger().Debug("uid is {0}, style is {1}, uiSlot is {2}, worldSlot is {3}", uid, style, uiSlot.ToString(), worldSlot.ToString());
-            runtime.CreateInstanceAsync(uid, style, "", "", (_instance) =>
+            runtime.CreateInstanceAsync(uid, style, "", "", "", "", (_instance) =>
             {
                 _instance.rootUI.transform.SetParent(uiSlot.transform);
                 _instance.rootUI.transform.localPosition = Vector3.zero;

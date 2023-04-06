@@ -16,6 +16,8 @@ local uiReference = {
     rtToolbar = nil, -- 工具栏
     cellToggles = {}, -- 图片按钮列表
     objButtonList = nil, -- 列表按钮
+    btnPrev = nil, -- 上一个按钮
+    btnNext = nil, -- 下一个按钮
 }
 -- 解绑事件的数组
 local unbindFunctions = {}
@@ -30,6 +32,11 @@ local listClickTimestamp = 0
 
 local function resetScale(_target)
     _target.transform.localScale = unity.Vector3.one
+end
+
+local function refreshToolbarStatus()
+    uiReference.btnPrev.interactable = currentIndex > 1
+    uiReference.btnNext.interactable = currentIndex < config.Count
 end
 
 local function viewImage(_texture, _cell, _index)
@@ -198,6 +205,7 @@ local function addScrollContainer()
                 end
                 currentIndex = i
                 viewImage(texture, cell, i)
+                refreshToolbarStatus()
             end
             toggle.onValueChanged:AddListener(onValueChanged)
             table.insert(unbindFunctions, 1, function()
@@ -262,7 +270,7 @@ local function addToolbar()
     local texturePrev = g_archiveReader:ReadTexture("toolbar_prev.png", unity.TextureFormat.RGBA32)
     imgPrev.texture = texturePrev
     -- 绑定事件
-    local btnPrev = objPrev:AddComponent(typeof(ugui.Button))
+    uiReference.btnPrev = objPrev:AddComponent(typeof(ugui.Button))
     local onPrevClick = function()
         if currentIndex <= 1 then
             currentIndex = 1
@@ -271,9 +279,9 @@ local function addToolbar()
         currentIndex = currentIndex - 1
         uiReference.cellToggles[currentIndex].isOn = true
     end
-    btnPrev.onClick:AddListener(onPrevClick)
+    uiReference.btnPrev.onClick:AddListener(onPrevClick)
     table.insert(unbindFunctions, 1, function()
-        btnPrev.onClick:RemoveAllListeners()
+        uiReference.btnPrev.onClick:RemoveAllListeners()
     end)
 
     -- 下一页按钮
@@ -290,7 +298,7 @@ local function addToolbar()
     local textureNext= g_archiveReader:ReadTexture("toolbar_next.png", unity.TextureFormat.RGBA32)
     imgNext.texture = textureNext
     -- 绑定事件
-    local btnNext = objNext:AddComponent(typeof(ugui.Button))
+    uiReference.btnNext = objNext:AddComponent(typeof(ugui.Button))
     local onNextClick = function()
         if currentIndex >= config.Count then
             currentIndex = config.Count
@@ -299,9 +307,9 @@ local function addToolbar()
         currentIndex = currentIndex + 1
         uiReference.cellToggles[currentIndex].isOn = true
     end
-    btnNext.onClick:AddListener(onNextClick)
+    uiReference.btnNext.onClick:AddListener(onNextClick)
     table.insert(unbindFunctions, 1, function()
-        btnNext.onClick:RemoveAllListeners()
+        uiReference.btnNext.onClick:RemoveAllListeners()
     end)
 
     -- 列表按钮

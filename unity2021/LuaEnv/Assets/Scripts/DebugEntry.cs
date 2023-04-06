@@ -41,7 +41,9 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
             var data = new Dictionary<string, object>();
             data["uid"] = _uid;
             data["style"] = _style;
+            data["uiRoot"] = "";
             data["uiSlot"] = _uiSlot;
+            data["worldRoot"] = "";
             data["worldSlot"] = _worldSlot;
             modelDummy_.Publish(MySubjectBase.Create, data);
         }

@@ -73,7 +73,6 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 
         public void Release()
         {
-            isRunning = false;
             if (null != coroutineRunner_)
             {
                 GameObject.Destroy(coroutineRunner_.gameObject);
@@ -99,12 +98,12 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
         {
             while (isRunning)
             {
-                yield return new UnityEngine.WaitForEndOfFrame();
                 if (luaEnv_ != null)
                     luaEnv_.Tick();
                 if (null == rootLua_ || null == rootLua_.Update)
                     continue;
                 rootLua_.Update();
+                yield return new UnityEngine.WaitForEndOfFrame();
             }
         }
 
@@ -136,6 +135,7 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
 
         public void Stop()
         {
+            isRunning = false;
             if (null != rootLua_ && null != rootLua_.Stop)
                 rootLua_.Stop();
             archiveReaderProxy_.Close();

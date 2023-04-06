@@ -27,15 +27,11 @@ local subtitles = {}
 local volumeClickTimestamp = 0
 -- 解绑事件的数组
 local unbindFunctions = {}
--- 最近一次音频的播放时间
-local lastestAudioPlayTime = 0
 
 -- 获取剩余时间的字符串
 local function getLeftTime()
-    local left = uiReference.audioSource.clip.length - uiReference.audioSource.time
-    local m = string.format("%02.0f", left/60)
-    local s = string.format("%02s", left%60)
-    return string.format("%02.0f:%02.0f", left/60, left%60)
+    local left = uiReference.audioSource.clip.length * (1-uiReference.sliderProgress.value)
+    return string.format("%02.0f:%02.0f", math.floor(left/60), math.floor(left%60))
 end
 
 local function resetScale(_target)
@@ -69,13 +65,15 @@ local function pause()
     uiReference.objPauseButton:SetActive(false)
 end
 
-local function stop()
+local function rewind()
     isPlaying = false
     uiReference.audioSource.time = 0
-    lastestAudioPlayTime = 0
     uiReference.audioSource:Stop()
     uiReference.objPlayButton:SetActive(true)
     uiReference.objPauseButton:SetActive(false)
+    uiReference.sliderProgress.value = 0
+    uiReference.textTime.text = getLeftTime()
+    uiReference.svContent.verticalNormalizedPosition = 1.0 - uiReference.sliderProgress.value
 end
 
 -- 构建slider组件
@@ -146,6 +144,8 @@ local function bindProgressSliderEvents(_slider)
     local entryEndDrag = unity.EventSystems.EventTrigger.Entry()
     entryEndDrag.eventID = unity.EventSystems.EventTriggerType.EndDrag
     local onEndDrag = function(_e)
+        -- 拖拽结束后，更新音频当前的时间
+        uiReference.audioSource.time = uiReference.audioSource.clip.length * uiReference.sliderProgress.value
         play()
         isDraging = false
     end
@@ -156,9 +156,9 @@ local function bindProgressSliderEvents(_slider)
     local entryDrag = unity.EventSystems.EventTrigger.Entry()
     entryDrag.eventID = unity.EventSystems.EventTriggerType.Drag
     local onDrag = function(_e)
-        uiReference.audioSource.time = uiReference.audioSource.clip.length * uiReference.sliderProgress.value
-        lastestAudioPlayTime = uiReference.audioSource.time
+        -- 拖拽进度时，只更新时间和内容位置，不更新音频当前的时间
         uiReference.textTime.text = getLeftTime()
+        uiReference.svContent.verticalNormalizedPosition = 1.0 - uiReference.sliderProgress.value
     end
     entryDrag.callback:AddListener(onDrag)
     eventTrigger.triggers:Add(entryDrag)
@@ -524,44 +524,38 @@ local function update()
         end
     end
 
+    -- 处理进度条的点击事件
     if not isClickHandled then
         uiReference.audioSource.time = uiReference.audioSource.clip.length * uiReference.sliderProgress.value
-        uiReference.textTime.text = getLeftTime()
         play()
         isClickHandled = true
-        lastestAudioPlayTime = uiReference.audioSource.time
         return
     end
 
-    if false == isPlaying
-        then
-            return
-        end
-
-        uiReference.sliderProgress.value = uiReference.audioSource.time / uiReference.audioSource.clip.length
-        uiReference.textTime.text = getLeftTime()
-        uiReference.svContent.verticalNormalizedPosition = 1.0 - uiReference.sliderProgress.value
-
-        -- 播放结束的判断
-        if not isDraging and isPlaying then
-            if uiReference.audioSource.time < lastestAudioPlayTime then
-                stop()
-            end
-            lastestAudioPlayTime = uiReference.audioSource.time
-        end
+    if false == isPlaying then
+        return
     end
 
-    local function stop()
-        -- 注销所有回调，避免抛出异常
-        -- InvalidOperationException: try to dispose a LuaEnv with C# callback!
-        g_preReadSequence.OnFinish = nil
-        for i,v in ipairs(unbindFunctions) do
-            v()
-        end
-    end
+    uiReference.sliderProgress.value = uiReference.audioSource.time / uiReference.audioSource.clip.length
+    uiReference.textTime.text = getLeftTime()
+    uiReference.svContent.verticalNormalizedPosition = 1.0 - uiReference.sliderProgress.value
 
-    return {
-        Run = run,
-        Update = update,
-        Stop = stop,
-    }
+    if uiReference.audioSource.time >= uiReference.audioSource.clip.length then
+        rewind()
+    end
+end
+
+local function stop()
+    -- 注销所有回调，避免抛出异常
+    -- InvalidOperationException: try to dispose a LuaEnv with C# callback!
+    g_preReadSequence.OnFinish = nil
+    for i,v in ipairs(unbindFunctions) do
+        v()
+    end
+end
+
+return {
+    Run = run,
+    Update = update,
+    Stop = stop,
+}

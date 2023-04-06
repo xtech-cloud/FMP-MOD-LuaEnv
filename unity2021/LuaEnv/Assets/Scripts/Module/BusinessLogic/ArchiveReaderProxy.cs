@@ -283,20 +283,22 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 bytes = reader_.Read(entry);
             }
 
+            NVorbis.VorbisReader vorbisReader = null;
+            AudioClip.PCMReaderCallback onRead = (_data) =>
+            {
+                vorbisReader.ReadSamples(_data, 0, _data.Length);
+            };
+            AudioClip.PCMSetPositionCallback onSetPosition = (_position) =>
+            {
+                vorbisReader.SamplePosition = _position;
+            };
+
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             tokenSourceS_.Add(tokenSource);
             Task.Factory.StartNew(() =>
             {
-                NVorbis.VorbisReader vorbisReader = null;
-                AudioClip.PCMReaderCallback onRead = (_data) =>
-                {
-                    vorbisReader.ReadSamples(_data, 0, _data.Length);
-                };
-                AudioClip.PCMSetPositionCallback onSetPosition = (_position) =>
-                {
-                    vorbisReader.SamplePosition = _position;
-                };
                 Stream memStream = new MemoryStream(bytes);
+                // 此转换耗时
                 vorbisReader = new NVorbis.VorbisReader(memStream);
 
                 if (tokenSource.IsCancellationRequested)
@@ -305,9 +307,9 @@ namespace XTC.FMP.MOD.LuaEnv.LIB.Unity
                 if (tokenSourceS_.Contains(tokenSource))
                     tokenSourceS_.Remove(tokenSource);
 
-                bool isStream = true;
                 UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
+                    bool isStream = true;
                     //TODO
                     // 当isStream==false时，此函数将会引起主线程卡顿
                     // 当isStream==true时，onSetPosition在拖动进度条时有几率抛出异常

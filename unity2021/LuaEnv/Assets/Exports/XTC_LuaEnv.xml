@@ -34,11 +34,13 @@
     <!-- 预创建的实例列表
       uid: 实例的唯一ID
       style: 使用的样式名
-      uiSlot: UI挂载的路径
-      worldSlot: World挂载的路径
+      uiRoot: UI挂载的根节点（需可见），空值时等于UI.slot
+      uiSlot: UI在uiRoot下的挂载路径
+      worldRoot: World挂载的根节点（需可见），空值时等于World.slot
+      worldSlot: World在worldRoot下的路径
     -->
     <Instances>
-        <Instance uid="default" style="default" uiSlot="" worldSlot=""/>
+        <Instance uid="default" style="default" uiRoot="" uiSlot="" worldRoot="" worldSlot=""/>
     </Instances>
     <!-- 预加载 -->
     <Preload>

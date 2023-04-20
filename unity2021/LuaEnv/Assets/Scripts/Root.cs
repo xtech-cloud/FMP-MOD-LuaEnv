@@ -10,7 +10,6 @@ using XTC.FMP.LIB.MVCS;
 /// </remarks>
 public class Root : RootBase
 {
-    public Font mainFont;
 
     private void Awake()
     {

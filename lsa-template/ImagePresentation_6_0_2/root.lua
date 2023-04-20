@@ -14,7 +14,7 @@ end
 local function stop()
     G_LOGGER:Info("lua root.Stop ...")
     app.Stop()
-    util.print_func_ref_by_csharp()
+    -- util.print_func_ref_by_csharp()
 end
 
 local function handleEvent(_event, _data)

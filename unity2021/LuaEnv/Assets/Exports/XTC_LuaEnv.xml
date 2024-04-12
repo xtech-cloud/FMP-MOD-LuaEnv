@@ -51,7 +51,7 @@
           Parameter.type: 参数的类型，支持的类型为string,int,float,bool
         -->
         <Subjects>
-            <Subject message="_/XTC/LuaEnv/Open">
+            <Subject message="/XTC/LuaEnv/Open">
                 <Parameters>
                     <Parameter key="uid" value="default" type="string"/>
                     <Parameter key="source" value="assloud://" type="string"/>
